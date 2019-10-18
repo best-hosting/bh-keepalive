@@ -1,0 +1,8 @@
+---
+# defaults file for bh-keepalive
+lvs_director_groups: []
+lvs_node_groups: []
+
+lvs_sched: 'rr'
+lvs_method: 'DR'
+delay_loop: 2

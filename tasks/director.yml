@@ -1,0 +1,65 @@
+---
+
+- block:
+    - name: Build virtual IPs dict
+      set_fact:
+        lvs_director_vips: >-
+          {{ (lvs_director_vips + item.virtual_addresses) | sort(attribute='iface') | unique }}
+      loop: "{{ lvs_director_groups }}"
+
+    - name: Show LVS director virtual IPs list
+      debug:
+        var: lvs_director_vips
+
+    - name: huys
+      set_fact:
+        realserver_groups: >-
+          {{ realserver_groups
+              + hostvars[item]['lvs_node_groups'] | default([])
+                  | map('combine', {'host' : item})
+                  | list
+          }}
+      loop: "{{ groups['lvs'] }}"
+
+    - name: basdf
+      debug:
+        msg: "{{ realserver_groups }}"
+
+    - name: Build full lvs groups
+      set_fact:
+        lvs_director_groups2: >-
+          {{ lvs_director_groups2 + [ item | combine(
+                { 'real_addresses': realserver_groups
+                    | selectattr('name', 'equalto', item.name)
+                    | map(attribute='address')
+                    | list
+                })
+              ]
+          }}
+      loop: "{{ lvs_director_groups }}"
+
+    - name: Show full lvs director config
+      debug:
+        msg: "{{ lvs_director_groups2 }}"
+
+  tags:
+    - debug
+
+- block:
+    - name: Add virtual addresses on interfaces
+      blockinfile:
+        path: '/etc/network/interfaces'
+        block: |
+          {% for i in lvs_director_vips %}
+          iface {{ i.iface }}  inet static
+            address {{ i.address }}
+            netmask {{ i.netmask }}
+          {% endfor %}
+
+    - name: Generate keepalived config
+      template:
+        src: 'keepalived.conf'
+        dest: '/etc/keepalived/keepalived.conf'
+        backup: yes
+        owner: root
+
