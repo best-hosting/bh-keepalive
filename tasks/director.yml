@@ -39,7 +39,7 @@
       debug:
         var: vrrp_vips
 
-    - name: huys
+    - name: Build LVS real servers list
       set_fact:
         realserver_groups: >-
           {{ realserver_groups
@@ -49,7 +49,7 @@
           }}
       loop: "{{ groups['lvs'] }}"
 
-    - name: basdf
+    - name: Show LVS real servers list
       debug:
         msg: "{{ realserver_groups }}"
 
@@ -92,4 +92,6 @@
         dest: '/etc/keepalived/keepalived.conf'
         backup: yes
         owner: root
+      notify:
+        - restart keepalived
 

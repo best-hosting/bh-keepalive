@@ -5,6 +5,11 @@
       package:
         name: keepalived
 
+    - name: Enable keepalived
+      service:
+        name: keepalived
+        enabled: yes
+
     - name: Set up lvs director
       import_tasks: tasks/director.yml
 
