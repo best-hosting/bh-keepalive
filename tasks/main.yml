@@ -1,6 +1,12 @@
 ---
 
-- name: Set up lvs director
-  import_tasks: tasks/director.yml
+- block:
+    - name: Install keepalived
+      package:
+        name: keepalived
+
+    - name: Set up lvs director
+      import_tasks: tasks/director.yml
+
   when: inventory_hostname in groups['lvs_director']
 

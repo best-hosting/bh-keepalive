@@ -1,15 +1,43 @@
 ---
 
 - block:
-    - name: Build virtual IPs dict
+    - name: Build LVS virtual IP list
       set_fact:
         lvs_director_vips: >-
-          {{ (lvs_director_vips + item.virtual_addresses) | sort(attribute='iface') | unique }}
+          {{ (lvs_director_vips + item.virtual_addresses)
+                | unique | sort(attribute='iface')
+          }}
       loop: "{{ lvs_director_groups }}"
+
+    - name: Check, that virtual IP addresses are correct
+      assert:
+        that:
+          - lvs_director_vips | map(attribute='address') | unique | list | count
+            == lvs_director_vips | count
+        fail_msg: "LVS virtual IPs: The same address has different iface or netmask somewhere."
 
     - name: Show LVS director virtual IPs list
       debug:
         var: lvs_director_vips
+
+    - name: Build VRRP virtual IP dict
+      set_fact:
+        vrrp_vips: >-
+          {{ vrrp_vips
+                + item.addresses | map('combine', {'iface': item.iface}) | list
+          }}
+      loop: "{{ vrrp }}"
+
+    - name: Check, that virtual IP addresses are correct
+      assert:
+        that:
+          - vrrp_vips | map(attribute='address') | unique | list | count
+            == vrrp_vips | count
+        fail_msg: "VRRP virtual IPs: The same address has different iface or netmask somewhere."
+
+    - name: Show VRRP virtual IPs list
+      debug:
+        var: vrrp_vips
 
     - name: huys
       set_fact:
@@ -46,14 +74,16 @@
     - debug
 
 - block:
-    - name: Add virtual addresses on interfaces
+    - name: Add LVS virtual addresses to interfaces
       blockinfile:
         path: '/etc/network/interfaces'
         block: |
           {% for i in lvs_director_vips %}
+          {% if vrrp_vips | selectattr('address', 'equalto', i.address) | list | count == 0 %}
           iface {{ i.iface }}  inet static
             address {{ i.address }}
             netmask {{ i.netmask }}
+          {% endif %}
           {% endfor %}
 
     - name: Generate keepalived config
