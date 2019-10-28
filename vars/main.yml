@@ -3,5 +3,6 @@
 # All virtual IPs of lvs director (from all groups).
 lvs_director_vips: []
 vrrp_vips: []
+interfaces_vips: []
 lvs_director_groups2: []
 realserver_groups: []
