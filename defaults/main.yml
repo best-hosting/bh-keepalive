@@ -1,7 +1,61 @@
 ---
-# defaults file for bh-keepalive
+# Description of lvs director. Example:
+#
+#   lvs_director_groups:
+#     - name: 'balancer80'
+#       lvs_sched: 'rr'
+#       lvs_method: 'DR'
+#       port: 80
+#       delay_loop: 2
+#       persistence_timeout: 60
+#       retry: 3
+#       connect_timeout: 2
+#       virtual_addresses:
+#         - { iface: 'ens3', address: 'VIP1', netmask: '255.255.255.255' }
+#         - { iface: 'ens3', address: 'VIP2', netmask: '255.255.255.255' }
+#       node_check: 'http_get'
+#     - name: 'balancer443'
+#       lvs_sched: 'rr'
+#       lvs_method: 'DR'
+#       port: 443
+#       delay_loop: 2
+#       persistence_timeout: 60
+#       retry: 3
+#       connect_timeout: 2
+#       virtual_addresses:
+#         - { iface: 'ens3', address: 'VIP1', netmask: '255.255.255.255' }
+#         - { iface: 'ens3', address: 'VIP2', netmask: '255.255.255.255' }
+#       node_check: 'ssl_get'
 lvs_director_groups: []
+
+# Description of lvs node. LVS group, where node is used determined by `name`.
+# Example:
+#
+#   lvs_node_groups:
+#     - name: 'balancer80'
+#       address: 'IP1'
+#       netmask: '255.255.255.255'
+#     - name: 'balancer443'
+#       address: 'IP2'
+#       netmask: '255.255.255.255'
 lvs_node_groups: []
+
+
+# Description of vrrp instance. Note, that for `preempt_delay` to make sense,
+# both instances intial state should be `BACKUP`. Example:
+#
+#   vrrp:
+#     - instance: 'vr'
+#       state:    'BACKUP'
+#       priority: 255
+#       vrid:     '55'
+#       iface:    'ens3'
+#       addresses:
+#         - { address: 'VIP1', cidr: '32' }
+#       unicast_peer:
+#         - IP3
+#       lvs_sync_iface: 'ens6'
+#       lvs_sync_id: 138
 vrrp: []
 
 lvs_sched: 'rr'
