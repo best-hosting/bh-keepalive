@@ -89,7 +89,7 @@
         path: '/etc/network/interfaces'
         block: |
           {% for i in interfaces_vips %}
-          auth {{ i.iface }}:{{ loop.index0 }}
+          auto {{ i.iface }}:{{ loop.index0 }}
           iface {{ i.iface }}:{{ loop.index0 }}  inet static
             address {{ i.address }}
             netmask {{ i.netmask }}
