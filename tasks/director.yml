@@ -9,7 +9,7 @@
           }}
       loop: "{{ lvs_director_groups }}"
 
-    - name: Check, that virtual IP addresses are correct
+    - name: Check, that LVS virtual IP addresses are correct
       assert:
         that:
           - lvs_director_vips | map(attribute='address') | unique | list | count
@@ -20,12 +20,12 @@
       debug:
         var: lvs_director_vips
 
-    - name: Build VRRP virtual IP dict
+    - name: Build VRRP virtual IP list
       set_fact:
         vrrp_vips: "{{ vrrp_vips + item.addresses | map(attribute='address') | list }}"
       loop: "{{ vrrp }}"
 
-    - name: Check, that virtual IP addresses are correct
+    - name: Check, that VRRP virtual IP addresses are correct
       assert:
         that:
           - vrrp_vips | unique | count == vrrp_vips | count
@@ -60,10 +60,10 @@
       debug:
         msg: "{{ realserver_groups }}"
 
-    - name: Build full lvs groups
+    - name: Build full lvs director config
       set_fact:
-        lvs_director_groups2: >-
-          {{ lvs_director_groups2 + [ item | combine(
+        lvs_director: >-
+          {{ lvs_director + [ item | combine(
                 { 'real_addresses': realserver_groups
                     | selectattr('name', 'equalto', item.name)
                     | map(attribute='address')
@@ -75,7 +75,7 @@
 
     - name: Show full lvs director config
       debug:
-        msg: "{{ lvs_director_groups2 }}"
+        msg: "{{ lvs_director }}"
 
   tags:
     - debug
