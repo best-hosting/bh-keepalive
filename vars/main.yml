@@ -6,3 +6,5 @@ vrrp_vips: []
 interfaces_vips: []
 lvs_director: []
 realserver_groups: []
+
+iptables_rules: '/etc/iptables/rules.huy'

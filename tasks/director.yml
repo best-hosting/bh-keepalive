@@ -4,8 +4,9 @@
     - name: Build LVS virtual IP list
       set_fact:
         lvs_director_vips: >-
-          {{ (lvs_director_vips + item.virtual_addresses)
-                | unique | sort(attribute='iface')
+          {{ (lvs_director_vips
+                + item.virtual_addresses | map('combine', {'fwmark': item.fwmark | default(0)}) | list
+              ) | unique | sort(attribute='iface')
           }}
       loop: "{{ lvs_director_groups }}"
 

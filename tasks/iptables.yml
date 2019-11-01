@@ -1,0 +1,30 @@
+---
+
+- block:
+    - name: Check, that iptables rule file exists
+      stat:
+        path: "{{ iptables_rules }}"
+      register: iptables_rules_stats
+    - name: Generate iptables config
+      template:
+        src: 'keepalived.conf'
+        dest: "{{ iptables_rules }}"
+        backup: yes
+        owner: root
+      notify:
+        - restart keepalived
+
+    - name: Add fwmark iptables rules
+      lineinfile:
+        path:   "{{ iptables_rules }}"
+        backup: yes
+        insertafter: '*mangle'
+        insertbefore: 'COMMIT'
+        line:   >-
+          {{ '-A PREROUTING -d ' + item.address + '/32'
+              + '-p tcp -m multiport --dports'
+              + '-j MARK --set-xmark 0x' + item.fwmark | string + '/0xffffffff'
+          }}
+      loop: "{{ lvs_director_vips }}"
+      when: item.fwmark != 0 and iptables_rules_stats.stat.exists
+
