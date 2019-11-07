@@ -1,0 +1,59 @@
+---
+
+- block:
+    - name: node | Build LVS virtual IP list
+      set_fact:
+        lvs_vips: >-
+          {{ lvs_vips + lvs_directors
+                | selectattr('name', 'equalto', item.name)
+                | map(attribute='virtual_addresses') | flatten
+                | map(attribute='address')
+                | unique | list
+          }}
+      loop: "{{ lvs_node_groups }}"
+
+    - name: node | Show LVS virtual IPs list
+      debug:
+        var: lvs_vips
+
+    - name: node | Build interfaces real server IPs
+      set_fact:
+        interfaces_vips: "{{ interfaces_vips + [item] }}"
+      when: not
+        (    item.address == ansible_host
+          or item.address in ansible_env.SSH_CONNECTION.split(' ')
+        )
+      loop: "{{ lvs_node_groups }}"
+
+    - name: node | Show interfaces real server IP list
+      debug:
+        var: interfaces_vips
+
+- block:
+    - name: node | Add LVS virtual IPs to loopback interface
+      blockinfile:
+        path: '/etc/network/interfaces'
+        backup: yes
+        insertafter: '^iface lo inet loopback$'
+        marker: '# {mark} ANSIBLE MANAGED LVS lo interface'
+        block: |
+          {% for v in lvs_vips %}
+                  up   ip addr add {{ v | ipaddr('host') }} scope host dev lo
+          {% endfor %}
+          {% for v in lvs_vips %}
+                  down ip addr add {{ v | ipaddr('host') }} scope host dev lo
+          {% endfor %}
+
+    - name: node | Add LVS real server IPs to interfaces
+      blockinfile:
+        path: '/etc/network/interfaces'
+        backup: yes
+        marker: '# {mark} ANSIBLE MANAGED LVS realserver'
+        block: |
+          {% for g in interfaces_vips %}
+          auto {{ g.iface }}:{{ loop.index0 }}
+          iface {{ g.iface }}:{{ loop.index0 }}  inet static
+            address {{ g.address | ipaddr('address') }}
+            netmask {{ g.address | ipaddr('netmask') }}
+          {% endfor %}
+

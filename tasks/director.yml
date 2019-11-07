@@ -3,8 +3,8 @@
 - block:
     - name: Build LVS virtual IP list
       set_fact:
-        lvs_director_vips: >-
-          {{ (lvs_director_vips + item.virtual_addresses)
+        lvs_vips: >-
+          {{ (lvs_vips + item.virtual_addresses)
                 | unique | sort(attribute='iface')
           }}
       loop: "{{ lvs_director_groups }}"
@@ -12,13 +12,13 @@
     - name: Check, that LVS virtual IP addresses are correct
       assert:
         that:
-          - lvs_director_vips | map(attribute='address') | unique | list | count
-            == lvs_director_vips | count
+          - lvs_vips | map(attribute='address') | unique | list | count
+            == lvs_vips | count
         fail_msg: "LVS virtual IPs: The same address has different iface or netmask somewhere."
 
     - name: Show LVS director virtual IPs list
       debug:
-        var: lvs_director_vips
+        var: lvs_vips
 
     - name: Build VRRP virtual IP list
       set_fact:
@@ -40,7 +40,7 @@
         interfaces_vips: >-
           {{ interfaces_vips + [item] }}
       when: not item.address in vrrp_vips
-      loop: "{{ lvs_director_vips }}"
+      loop: "{{ lvs_vips }}"
 
     - name: Show interfaces IPs list
       debug:
@@ -73,6 +73,8 @@
     - name: Add LVS virtual addresses to interfaces
       blockinfile:
         path: '/etc/network/interfaces'
+        backup: yes
+        marker: '# {mark} ANSIBLE MANAGED LVS director'
         block: |
           {% for i in interfaces_vips %}
           auto {{ i.iface }}:{{ loop.index0 }}

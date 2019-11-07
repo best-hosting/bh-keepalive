@@ -19,4 +19,13 @@
       import_tasks: tasks/director.yml
 
   when: inventory_hostname in groups['lvs_director']
+  tags:
+    - lvs_director
 
+- block:
+    - name: Set up lvs node
+      import_tasks: tasks/node.yml
+
+  when: inventory_hostname in groups['lvs_node']
+  tags:
+    - lvs_node
