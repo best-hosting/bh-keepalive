@@ -1,0 +1,34 @@
+---
+
+- block:
+    - name: define | Build all LVS real servers list
+      set_fact:
+        lvs_realservers: >-
+          {{ lvs_realservers
+              + hostvars[item]['lvs_node_groups'] | default([])
+                  | map('combine', {'host' : item})
+                  | list
+          }}
+      delegate_to: "{{ item }}"
+      run_once: true
+      loop: "{{ groups['lvs'] }}"
+
+    - name: define | Build all LVS directors list
+      set_fact:
+        lvs_directors: >-
+          {{ lvs_directors
+              + hostvars[item]['lvs_director_groups'] | default([])
+                  | map('combine', {'host' : item})
+                  | list
+          }}
+      delegate_to: "{{ item }}"
+      run_once: true
+      loop: "{{ groups['lvs'] }}"
+
+    - name: define | Show all LVS real servers
+      debug:
+        var: lvs_realservers
+    - name: define | Show all LVS directors
+      debug:
+        var: lvs_directors
+

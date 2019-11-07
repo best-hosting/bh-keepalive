@@ -1,8 +1,16 @@
 ---
 
-# All virtual IPs of lvs director (from all groups).
-lvs_director_vips: []
+# List of all per-host LVS director configs.
+lvs_directors: []
+# List of all per-host LVS real server configs.
+lvs_realservers: []
+
+# All virtual IPs of a host (either LVS director or real server).
+lvs_vips: []
+# All virtual IPs of a VRRP node.
 vrrp_vips: []
+# Virtual IPs to add to 'network/interfaces'. Note, that depending on server
+# role (director or node) IP will be added to different interfaces.
 interfaces_vips: []
+
 lvs_director: []
-realserver_groups: []

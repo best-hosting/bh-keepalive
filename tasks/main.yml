@@ -1,5 +1,10 @@
 ---
 
+- name: Define LVS and VRRP variables
+  import_tasks: define.yml
+  tags:
+    - always
+
 - block:
     - name: Install keepalived
       package:

@@ -46,25 +46,11 @@
       debug:
         var: interfaces_vips
 
-    - name: Build LVS real servers list
-      set_fact:
-        realserver_groups: >-
-          {{ realserver_groups
-              + hostvars[item]['lvs_node_groups'] | default([])
-                  | map('combine', {'host' : item})
-                  | list
-          }}
-      loop: "{{ groups['lvs'] }}"
-
-    - name: Show LVS real servers list
-      debug:
-        msg: "{{ realserver_groups }}"
-
     - name: Build full lvs director config
       set_fact:
         lvs_director: >-
           {{ lvs_director + [ item | combine(
-                { 'real_addresses': realserver_groups
+                { 'real_addresses': lvs_realservers
                     | selectattr('name', 'equalto', item.name)
                     | map(attribute='address')
                     | list
