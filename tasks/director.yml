@@ -22,7 +22,12 @@
 
     - name: Build VRRP virtual IP list
       set_fact:
-        vrrp_vips: "{{ vrrp_vips + item.addresses | map(attribute='address') | list }}"
+        vrrp_vips: >-
+          {{ vrrp_vips
+              + item.addresses
+                | map(attribute='address')
+                | map('ipaddr', 'address') | list
+          }}
       loop: "{{ vrrp }}"
 
     - name: Check, that VRRP virtual IP addresses are correct
@@ -39,7 +44,7 @@
       set_fact:
         interfaces_vips: >-
           {{ interfaces_vips + [item] }}
-      when: not item.address in vrrp_vips
+      when: not (item.address | ipaddr('address')) in vrrp_vips
       loop: "{{ lvs_vips }}"
 
     - name: Show interfaces IPs list
@@ -79,8 +84,8 @@
           {% for i in interfaces_vips %}
           auto {{ i.iface }}:{{ 100 + loop.index0 }}
           iface {{ i.iface }}:{{ 100 + loop.index0 }}  inet static
-            address {{ i.address }}
-            netmask {{ i.netmask }}
+            address {{ i.address | ipaddr('address') }}
+            netmask {{ i.address | ipaddr('netmask') }}
           {% endfor %}
 
     - name: Generate keepalived config
