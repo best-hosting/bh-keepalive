@@ -77,8 +77,8 @@
         marker: '# {mark} ANSIBLE MANAGED LVS director'
         block: |
           {% for i in interfaces_vips %}
-          auto {{ i.iface }}:{{ loop.index0 }}
-          iface {{ i.iface }}:{{ loop.index0 }}  inet static
+          auto {{ i.iface }}:{{ 100 + loop.index0 }}
+          iface {{ i.iface }}:{{ 100 + loop.index0 }}  inet static
             address {{ i.address }}
             netmask {{ i.netmask }}
           {% endfor %}

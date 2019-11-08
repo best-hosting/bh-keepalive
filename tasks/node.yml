@@ -51,8 +51,8 @@
         marker: '# {mark} ANSIBLE MANAGED LVS realserver'
         block: |
           {% for g in interfaces_vips %}
-          auto {{ g.iface }}:{{ loop.index0 }}
-          iface {{ g.iface }}:{{ loop.index0 }}  inet static
+          auto {{ g.iface }}:{{ 100 + loop.index0 }}
+          iface {{ g.iface }}:{{ 100 + loop.index0 }}  inet static
             address {{ g.address | ipaddr('address') }}
             netmask {{ g.address | ipaddr('netmask') }}
           {% endfor %}
