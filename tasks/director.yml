@@ -57,7 +57,10 @@
           {{ lvs_director + [ item | combine(
                 { 'real_addresses': lvs_realservers
                     | selectattr('name', 'equalto', item.name)
-                    | map(attribute='address')
+                    | map(attribute='address') | ipaddr('address')
+                    | list
+                , 'virtual_addresses': item.virtual_addresses
+                    | map(attribute='address') | ipaddr('address')
                     | list
                 })
               ]
