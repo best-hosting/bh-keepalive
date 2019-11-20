@@ -2,7 +2,7 @@
 
 - block:
 
-    - name: Build full lvs director config
+    - name: director | Build full lvs director config
       set_fact:
         lvs_director: >-
           {{ lvs_director + [ item | combine(
@@ -18,16 +18,16 @@
           }}
       loop: "{{ lvs_director_groups }}"
 
-    - name: Show full lvs director config
+    - name: director | Show full lvs director config
       debug:
         msg: "{{ lvs_director }}"
 
   tags:
-    - debug
+    - always
 
 - block:
 
-    - name: Generate keepalived config
+    - name: director | Generate keepalived config
       template:
         src: 'keepalived.conf'
         dest: '/etc/keepalived/keepalived.conf'

@@ -16,6 +16,9 @@
       debug:
         var: lvs_node_vips
 
+  tags:
+    - always
+
 - block:
     - name: node | Add LVS virtual IPs to loopback interface
       blockinfile:
