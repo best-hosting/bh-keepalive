@@ -61,7 +61,7 @@
           }}
       vars:
         cur_iface: >-
-          {{ interfaces_conf[item.iface] | default([]) }}
+          {{ interfaces_conf[item.iface] }}
       loop: "{{ interfaces_ips }}"
 
     - name: interfaces | Show interfaces conf

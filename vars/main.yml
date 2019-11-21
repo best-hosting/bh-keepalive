@@ -15,6 +15,17 @@ vrrp_vips: []
 # IPs, for real server - real server IPs.
 interfaces_vips: []
 interfaces_ips: []
-interfaces_conf: {}
+
+# List of vrrp interfaces.
+vrrp_interfaces: >
+  {{ vrrp | map(attribute='instance') | list }}
+# Define interfaces config as dictinary, containing all interfaces, except
+# loopback, and squashing all aliases into single main interface entry.
+interfaces_conf: >
+  {{ dict( ansible_facts['interfaces']
+            | difference(["lo"] + vrrp_interfaces)
+            | map("regex_replace", '_[0-9]+$', '') | unique
+            | zip_longest([], fillvalue=[])
+         ) }}
 
 lvs_director: []
