@@ -1,17 +1,44 @@
 ---
 
+- name: Define LVS and VRRP variables
+  import_tasks: define.yml
+  tags:
+    - always
+
 - block:
-    - name: Install keepalived
-      package:
-        name: keepalived
+    - block:
+        - name: Install keepalived
+          package:
+            name: keepalived
 
-    - name: Enable keepalived
-      service:
-        name: keepalived
-        enabled: yes
+        - name: Enable keepalived
+          service:
+            name: keepalived
+            enabled: yes
 
-    - name: Set up lvs director
-      import_tasks: tasks/director.yml
+        - name: Set up lvs director
+          import_tasks: tasks/director.yml
 
-  when: inventory_hostname in groups['lvs_director']
+      when: lvs_director_groups | length > 0
+      tags:
+        - lvs_director
+
+    - block:
+        - name: Set up lvs node
+          import_tasks: tasks/node.yml
+
+      when: lvs_node_groups | length > 0
+      tags:
+        - lvs_node
+
+    - block:
+        - name: Set up interfaces
+          import_tasks: interfaces.yml
+      tags:
+        - lvs_node
+        - lvs_director
+
+  when: inventory_hostname in groups['lvs']
+  tags:
+    - lvs
 

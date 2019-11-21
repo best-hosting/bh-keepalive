@@ -1,5 +1,5 @@
 ---
-# Description of lvs director. Example:
+# Description of lvs directors. Example:
 #
 #   lvs_director_groups:
 #     - name: 'balancer80'
@@ -11,37 +11,34 @@
 #       retry: 3
 #       connect_timeout: 2
 #       virtual_addresses:
-#         - { iface: 'ens3', address: 'VIP1', netmask: '255.255.255.255' }
-#         - { iface: 'ens3', address: 'VIP2', netmask: '255.255.255.255' }
+#         - { address: 'VIP1' }
+#         - { iface: 'ens3', address: 'VIP2/MASK' }
 #       node_check: 'http_get'
-#     - name: 'balancer443'
-#       lvs_sched: 'rr'
-#       lvs_method: 'DR'
-#       port: 443
-#       delay_loop: 2
-#       persistence_timeout: 60
-#       retry: 3
-#       connect_timeout: 2
-#       virtual_addresses:
-#         - { iface: 'ens3', address: 'VIP1', netmask: '255.255.255.255' }
-#         - { iface: 'ens3', address: 'VIP2', netmask: '255.255.255.255' }
-#       node_check: 'ssl_get'
+#
+# Addresses with `iface` _undefined_ will _not_ be added `network/interfaces`.
+# On the other hand, addresses with defined `iface` will defined in
+# `network/interfaces` using interface aliases starting at :100 . Using
+# non-existent interface name will lead to ansible runtime error.
+#
+# Address format is 'IP/MASK'. CIDR prefix (mask) does not matter for LVS, but
+# it'll be used when defining address in `network/interface`.
 lvs_director_groups: []
 
-# Description of lvs node. LVS group, where node is used determined by `name`.
+# Description of lvs nodes. LVS group, where node is used, determined by
+# `name`. Here `address` is real address of LVS node. The same note about
+# addresses as above applies here.
+#
 # Example:
 #
 #   lvs_node_groups:
 #     - name: 'balancer80'
-#       address: 'IP1'
-#       netmask: '255.255.255.255'
+#       address: 'RIP1/MASK'
+#       iface: 'ens6'
 #     - name: 'balancer443'
-#       address: 'IP2'
-#       netmask: '255.255.255.255'
+#       address: 'RIP2'
 lvs_node_groups: []
 
-
-# Description of vrrp instance. Note, that for `preempt_delay` to make sense,
+# Description of vrrp instances. Note, that for `preempt_delay` to make sense,
 # both instances intial state should be `BACKUP`. Example:
 #
 #   vrrp:
@@ -51,13 +48,10 @@ lvs_node_groups: []
 #       vrid:     '55'
 #       iface:    'ens3'
 #       addresses:
-#         - { address: 'VIP1', cidr: '32' }
+#         - { address: 'VIP1' }
 #       unicast_peer:
 #         - IP3
 #       lvs_sync_iface: 'ens6'
 #       lvs_sync_id: 138
 vrrp: []
 
-lvs_sched: 'rr'
-lvs_method: 'DR'
-delay_loop: 2

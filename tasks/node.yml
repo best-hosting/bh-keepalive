@@ -1,0 +1,36 @@
+---
+
+- block:
+    - name: node | Build LVS virtual IP list
+      set_fact:
+        lvs_node_vips: >-
+          {{ lvs_node_vips + lvs_directors
+                | selectattr('name', 'equalto', item.name)
+                | map(attribute='virtual_addresses') | flatten
+                | map(attribute='address')
+                | unique | list
+          }}
+      loop: "{{ lvs_node_groups }}"
+
+    - name: node | Show LVS virtual IPs list
+      debug:
+        var: lvs_node_vips
+
+  tags:
+    - always
+
+- block:
+    - name: node | Add LVS virtual IPs to loopback interface
+      blockinfile:
+        path: '/etc/network/interfaces'
+        backup: yes
+        insertafter: '^iface lo inet loopback$'
+        marker: '# {mark} ANSIBLE MANAGED LVS lo interface'
+        block: |
+          {% for v in lvs_node_vips %}
+                  up   ip addr add {{ v | ipaddr('host') }} scope host dev lo
+          {% endfor %}
+          {% for v in lvs_node_vips %}
+                  down ip addr add {{ v | ipaddr('host') }} scope host dev lo
+          {% endfor %}
+

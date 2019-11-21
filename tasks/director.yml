@@ -1,101 +1,33 @@
 ---
 
 - block:
-    - name: Build LVS virtual IP list
-      set_fact:
-        lvs_director_vips: >-
-          {{ (lvs_director_vips + item.virtual_addresses)
-                | unique | sort(attribute='iface')
-          }}
-      loop: "{{ lvs_director_groups }}"
 
-    - name: Check, that LVS virtual IP addresses are correct
-      assert:
-        that:
-          - lvs_director_vips | map(attribute='address') | unique | list | count
-            == lvs_director_vips | count
-        fail_msg: "LVS virtual IPs: The same address has different iface or netmask somewhere."
-
-    - name: Show LVS director virtual IPs list
-      debug:
-        var: lvs_director_vips
-
-    - name: Build VRRP virtual IP list
-      set_fact:
-        vrrp_vips: "{{ vrrp_vips + item.addresses | map(attribute='address') | list }}"
-      loop: "{{ vrrp }}"
-
-    - name: Check, that VRRP virtual IP addresses are correct
-      assert:
-        that:
-          - vrrp_vips | unique | count == vrrp_vips | count
-        fail_msg: "VRRP virtual IPs: The same address has different iface or netmask somewhere."
-
-    - name: Show VRRP virtual IPs list
-      debug:
-        var: vrrp_vips
-
-    - name: Build interfaces IPs list
-      set_fact:
-        interfaces_vips: >-
-          {{ interfaces_vips + [item] }}
-      when: not item.address in vrrp_vips
-      loop: "{{ lvs_director_vips }}"
-
-    - name: Show interfaces IPs list
-      debug:
-        var: interfaces_vips
-
-    - name: Build LVS real servers list
-      set_fact:
-        realserver_groups: >-
-          {{ realserver_groups
-              + hostvars[item]['lvs_node_groups'] | default([])
-                  | map('combine', {'host' : item})
-                  | list
-          }}
-      loop: "{{ groups['lvs'] }}"
-
-    - name: Show LVS real servers list
-      debug:
-        msg: "{{ realserver_groups }}"
-
-    - name: Build full lvs director config
+    - name: director | Build full lvs director config
       set_fact:
         lvs_director: >-
           {{ lvs_director + [ item | combine(
-                { 'real_addresses': realserver_groups
+                { 'real_addresses': lvs_realservers
                     | selectattr('name', 'equalto', item.name)
-                    | map(attribute='address')
+                    | map(attribute='address') | ipaddr('address')
+                    | list
+                , 'virtual_addresses': item.virtual_addresses
+                    | map(attribute='address') | ipaddr('address')
                     | list
                 })
               ]
           }}
       loop: "{{ lvs_director_groups }}"
 
-    - name: Show full lvs director config
+    - name: director | Show full lvs director config
       debug:
         msg: "{{ lvs_director }}"
 
   tags:
-    - debug
+    - always
 
 - block:
-    # In fact, i need iface aliases, because otherwise `resolvconf` will
-    # overwrite dns-nameservers info of main interface from the last alias
-    # (which has no dns nameservers defined).
-    - name: Add LVS virtual addresses to interfaces
-      blockinfile:
-        path: '/etc/network/interfaces'
-        block: |
-          {% for i in interfaces_vips %}
-          auto {{ i.iface }}:{{ loop.index0 }}
-          iface {{ i.iface }}:{{ loop.index0 }}  inet static
-            address {{ i.address }}
-            netmask {{ i.netmask }}
-          {% endfor %}
 
-    - name: Generate keepalived config
+    - name: director | Generate keepalived config
       template:
         src: 'keepalived.conf'
         dest: '/etc/keepalived/keepalived.conf'
