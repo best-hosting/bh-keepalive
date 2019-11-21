@@ -6,11 +6,15 @@ lvs_directors: []
 lvs_realservers: []
 
 # All virtual IPs of a host (either LVS director or real server).
-lvs_vips: []
+lvs_node_vips: []
+lvs_node_rips: []
+lvs_director_vips: []
 # All virtual IPs of a VRRP node.
 vrrp_vips: []
 # IPs to add to 'network/interfaces'. For LVS director here will be virtual
 # IPs, for real server - real server IPs.
 interfaces_vips: []
+interfaces_ips: []
+interfaces_conf: {}
 
 lvs_director: []

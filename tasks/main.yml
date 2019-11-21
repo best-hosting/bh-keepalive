@@ -29,3 +29,11 @@
   when: inventory_hostname in groups['lvs_node']
   tags:
     - lvs_node
+
+- block:
+    - name: Set up interfaces
+      import_tasks: interfaces.yml
+
+  tags:
+    - debug
+
