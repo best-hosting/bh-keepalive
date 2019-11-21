@@ -5,22 +5,26 @@ lvs_directors: []
 # List of all per-host LVS real server configs.
 lvs_realservers: []
 
-# All virtual IPs of a host (either LVS director or real server).
+# All virtual IPs of LVS node.
 lvs_node_vips: []
+# All real IPs of LVS node.
 lvs_node_rips: []
+# All virtual IPs of LVS director.
 lvs_director_vips: []
 # All virtual IPs of a VRRP node.
 vrrp_vips: []
-# IPs to add to 'network/interfaces'. For LVS director here will be virtual
+# IPs to define in 'network/interfaces'. For LVS director here will be virtual
 # IPs, for real server - real server IPs.
-interfaces_vips: []
+#
+# These are _not_ (virtual LVS) IPs added to loopback on LVS node.
 interfaces_ips: []
 
 # List of vrrp interfaces.
 vrrp_interfaces: >
   {{ vrrp | map(attribute='instance') | list }}
-# Define interfaces config as dictinary, containing all interfaces, except
-# loopback, and squashing all aliases into single main interface entry.
+# Define interfaces config as dictionary, containing all interfaces, except
+# loopback and vrrp interfaces, and squashing all aliases into single main
+# interface entry.
 interfaces_conf: >
   {{ dict( ansible_facts['interfaces']
             | difference(["lo"] + vrrp_interfaces)
