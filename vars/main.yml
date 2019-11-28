@@ -33,3 +33,8 @@ interfaces_conf: >
          ) }}
 
 lvs_director: []
+
+
+# Correct representation of `groups` for converting into yaml and writing to
+# inventory file.
+groups_yaml: {}

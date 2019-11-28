@@ -55,3 +55,6 @@ lvs_node_groups: []
 #       lvs_sync_id: 138
 vrrp: []
 
+# File, where to store dynamic LVS groups.
+lvs_group_file: "{{ playbook_dir + '/lvs_groups.yml' }}"
+

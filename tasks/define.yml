@@ -53,7 +53,32 @@
       when: item.host == inventory_hostname
       loop: "{{ lvs_directors }}"
 
-    - name: Print groups
+    - name: define | Show host groups
       debug:
         var: group_names
+
+- block:
+    - name: define | Show all groups
+      debug:
+        var: groups
+
+    - name: define | Prepare groups yaml format
+      set_fact:
+        groups_yaml: >-
+          {{ groups_yaml | combine(
+                      { item.key :
+                          { 'hosts' : dict(item.value | zip_longest([], fillvalue={})) }
+                      }
+                    )
+          }}
+      when: item.key.startswith('lvs')
+      loop: "{{ groups | dict2items }}"
+
+    - name: define | Save LVS groups
+      copy:
+        content: "{{ groups_yaml | to_yaml }}"
+        dest: "{{ lvs_group_file }}"
+      delegate_to: 'localhost'
+
+  run_once: true
 
