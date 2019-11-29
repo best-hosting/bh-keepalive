@@ -10,7 +10,6 @@
                   | list
           }}
       delegate_to: "{{ item }}"
-      run_once: true
       loop: "{{ groups['lvs'] }}"
 
     - name: define | Build all LVS directors list
@@ -22,9 +21,18 @@
                   | list
           }}
       delegate_to: "{{ item }}"
-      run_once: true
       loop: "{{ groups['lvs'] }}"
 
+    - name: define | Show all LVS real servers
+      debug:
+        var: lvs_realservers
+    - name: define | Show all LVS directors
+      debug:
+        var: lvs_directors
+
+  run_once: true
+
+- block:
     - name: define | Group both LVS directors and real servers
       group_by:
         key: "lvs_{{ item.name }}"
@@ -44,13 +52,6 @@
         parents: "lvs_{{ item.name }}"
       when: item.host == inventory_hostname
       loop: "{{ lvs_directors }}"
-
-    - name: define | Show all LVS real servers
-      debug:
-        var: lvs_realservers
-    - name: define | Show all LVS directors
-      debug:
-        var: lvs_directors
 
     - name: Print groups
       debug:
