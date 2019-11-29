@@ -25,31 +25,25 @@
       run_once: true
       loop: "{{ groups['lvs'] }}"
 
-    - name: huy
-      add_host:
-        name: "{{ item }}"
-        groups: >-
-          {{ [] | zip_longest(lvs_realservers
-                        | selectattr('host', 'equalto', item)
-                        | map(attribute='name') | unique | list
-                    , fillvalue='lvs_rs')
-                | map('join', '_') | list
-          }}
-      run_once: true
-      loop: "{{ groups['lvs'] }}"
+    - name: define | Group both LVS directors and real servers
+      group_by:
+        key: "lvs_{{ item.name }}"
+      when: item.host == inventory_hostname
+      loop: "{{ lvs_realservers + lvs_directors }}"
 
-    - name: pizda
-      add_host:
-        name: "{{ item }}"
-        groups: >-
-          {{ [] | zip_longest(lvs_directors
-                        | selectattr('host', 'equalto', item)
-                        | map(attribute='name') | unique | list
-                    , fillvalue='lvs_ds')
-                | map('join', '_') | list
-          }}
-      run_once: true
-      loop: "{{ groups['lvs'] }}"
+    - name: define | Group LVS real servers
+      group_by:
+        key: "lvs_{{ item.name }}_rs"
+        parents: "lvs_{{ item.name }}"
+      when: item.host == inventory_hostname
+      loop: "{{ lvs_realservers }}"
+
+    - name: define | Group LVS directors
+      group_by:
+        key: "lvs_{{ item.name }}_ds"
+        parents: "lvs_{{ item.name }}"
+      when: item.host == inventory_hostname
+      loop: "{{ lvs_directors }}"
 
     - name: define | Show all LVS real servers
       debug:
@@ -58,7 +52,7 @@
       debug:
         var: lvs_directors
 
-    - name: huy2
+    - name: Print groups
       debug:
         var: group_names
 
