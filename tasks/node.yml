@@ -34,3 +34,15 @@
                   down ip addr add {{ v | ipaddr('host') }} scope host dev lo
           {% endfor %}
 
+    - name: node | Enable arp ignore on all interfaces
+      sysctl:
+        name:   "{{ item }}"
+        value:  1
+        state:  present
+        sysctl_file: '/etc/sysctl.d/local.conf'
+        sysctl_set: yes
+        reload:     yes
+      loop:
+        - 'net.ipv4.conf.all.arp_ignore'
+        - 'net.ipv4.conf.all.arp_announce'
+
