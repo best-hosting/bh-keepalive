@@ -49,6 +49,7 @@ lvs_node_groups: []
 #       iface:    'ens3'
 #       addresses:
 #         - { address: 'VIP1' }
+#       unicast_src_ip: {{ ansible_host }}
 #       unicast_peer:
 #         - IP3
 #       lvs_sync_iface: 'ens6'

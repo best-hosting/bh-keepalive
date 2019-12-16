@@ -18,9 +18,29 @@
           }}
       loop: "{{ lvs_director_groups }}"
 
-    - name: director | Show full lvs director config
+    - name: director | Build full VRRP config
+      set_fact:
+        vrrp_conf: >-
+          {{ vrrp_conf + [
+                { 'unicast_src_ip': unicast_src_ip
+                , 'unicast_peer': vrrp_instances
+                    | selectattr('instance', 'equalto', item.instance)
+                    | map(attribute='unicast_src_ip') | map(attribute='address') | ipaddr('address')
+                    | reject('equalto', unicast_src_addr)
+                    | list
+                } | combine(item)
+              ]
+          }}
+      vars:
+        unicast_src_addr: "{{ item.unicast_src_ip.address | default(ansible_host) }}"
+      loop: "{{ vrrp }}"
+
+    - name: director | Show full LVS director config
       debug:
-        msg: "{{ lvs_director }}"
+        var: lvs_director
+    - name: director | Show full VRRP config
+      debug:
+        var: vrrp_conf
 
   tags:
     - always
