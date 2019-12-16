@@ -4,8 +4,8 @@
 
     - name: director | Build full lvs director config
       set_fact:
-        lvs_director: >-
-          {{ lvs_director + [ item | combine(
+        lvs_director_conf: >-
+          {{ lvs_director_conf + [ item | combine(
                 { 'real_addresses': lvs_realservers
                     | selectattr('name', 'equalto', item.name)
                     | map(attribute='address') | ipaddr('address')
@@ -37,7 +37,7 @@
 
     - name: director | Show full LVS director config
       debug:
-        var: lvs_director
+        var: lvs_director_conf
     - name: director | Show full VRRP config
       debug:
         var: vrrp_conf

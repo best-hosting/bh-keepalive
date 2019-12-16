@@ -39,7 +39,7 @@ interfaces_conf: >
             | zip_longest([], fillvalue=[])
          ) }}
 
-lvs_director: []
+lvs_director_conf: []
 
 # Correct representation of `groups` for converting into yaml and writing to
 # inventory file.
