@@ -15,6 +15,9 @@ lvs_node_rips: []
 lvs_director_vips: []
 # All virtual IPs of a VRRP node (probably, containing several instances).
 vrrp_vips: []
+# All unicast _source_ IPs of a VRRP node (probably, containing several
+# instances).
+vrrp_unicast_src_ips: []
 # IPs to define in 'network/interfaces'. For LVS director here will be virtual
 # IPs, for real server - real server IPs.
 #
