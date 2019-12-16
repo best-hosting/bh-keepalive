@@ -1,23 +1,21 @@
 ---
 
 - block:
-    # Filter out addresses used to connect to host and addresses with
-    # _undefined_ interface.
+    # Filter out addresses used to connect to host.
     - name: interfaces | Build LVS node real IPs list
       set_fact:
         lvs_node_rips: "{{ lvs_node_rips + [item] }}"
-      when: item['iface'] is defined
-            and not (item.address | ipaddr('address'))
-                    in  [ansible_host] + ansible_env.SSH_CONNECTION.split(' ')
+      when: not (item.address | ipaddr('address'))
+                in  [ansible_host] + ansible_env.SSH_CONNECTION.split(' ')
       loop: "{{ lvs_node_groups }}"
       # Fix syntax highlighting in vim'
 
+    # Filter out addresses used to connect to host.
     - name: interfaces | Build LVS director virtual IPs list
       set_fact:
         lvs_director_vips: "{{ lvs_director_vips + [item.1] }}"
-      when: item.1['iface'] is defined
-            and not (item.1.address | ipaddr('address'))
-                    in  [ansible_host] + ansible_env.SSH_CONNECTION.split(' ')
+      when: not (item.1.address | ipaddr('address'))
+                in  [ansible_host] + ansible_env.SSH_CONNECTION.split(' ')
       loop: "{{ lvs_director_groups | subelements('virtual_addresses') }}"
       # Fix syntax highlighting in vim"
 
@@ -30,6 +28,13 @@
           }}
       loop: "{{ vrrp }}"
 
+    - name: interfaces | Build VRRP unicast source IPs list
+      set_fact:
+        vrrp_unicast_src_ips: >-
+          {{ vrrp_unicast_src_ips + [item.unicast_src_ip]
+          }}
+      loop: "{{ vrrp_conf }}"
+
     - name: interfaces | Show LVS node real IPs list
       debug:
         var: lvs_node_rips
@@ -39,13 +44,18 @@
     - name: interfaces | Show VRRP virtual IPs list
       debug:
         var: vrrp_vips
+    - name: interfaces | Show VRRP unicast source IPs list
+      debug:
+        var: vrrp_unicast_src_ips
 
+    # Filter out addresses with undefined iface and virtual VRRP addresses.
     - name: interfaces | Build interfaces IPs list
       set_fact:
         interfaces_ips: >-
           {{ interfaces_ips + [item] }}
-      when: not (item.address | ipaddr('address')) in vrrp_vips
-      loop: "{{ lvs_node_rips + lvs_director_vips }}"
+      when: item['iface'] is defined
+              and not (item.address | ipaddr('address')) in vrrp_vips
+      loop: "{{ lvs_node_rips + lvs_director_vips + vrrp_unicast_src_ips }}"
 
     - name: interfaces | Show interfaces IPs list
       debug:

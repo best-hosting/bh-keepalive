@@ -37,6 +37,7 @@
       tags:
         - lvs_node
         - lvs_director
+        - lvs_interfaces
 
   when: inventory_hostname in groups['lvs']
   tags:

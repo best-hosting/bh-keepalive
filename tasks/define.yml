@@ -23,12 +23,26 @@
       delegate_to: "{{ item }}"
       loop: "{{ groups['lvs'] }}"
 
+    - name: define | Build all VRRP instances list
+      set_fact:
+        vrrp_instances: >-
+          {{ vrrp_instances
+              + hostvars[item]['vrrp'] | default([])
+                  | map('combine', { 'host' : item })
+                  | list
+          }}
+      delegate_to: "{{ item }}"
+      loop: "{{ groups['lvs'] }}"
+
     - name: define | Show all LVS real servers
       debug:
         var: lvs_realservers
     - name: define | Show all LVS directors
       debug:
         var: lvs_directors
+    - name: define | Show all VRRP instances
+      debug:
+        var: vrrp_instances
 
   run_once: true
 
